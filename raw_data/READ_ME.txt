@@ -1,0 +1,1 @@
+In here is all raw CO2 data from monitor A12.
