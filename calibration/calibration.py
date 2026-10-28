@@ -10,6 +10,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
+from sklearn.linear_model import LinearRegression
+
 # output directory (relative path: outputs/calibration_plots)
 output_dir = Path("outputs/calibration_plots")
 output_dir.mkdir(parents=True, exist_ok=True)
@@ -41,9 +43,13 @@ min_val = min(combined["ref_co2_ppm"].min(), combined["CO2 (ppm) raw"].min())
 max_val = max(combined["ref_co2_ppm"].max(), combined["CO2 (ppm) raw"].max())
 
 # limit data to be Oct 10th 12am -- Oct 12th 6am
-start_time = "2026-10-12 00:00:00+00:00"
-end_time = "2026-10-13 12:00:00+00:00"
+start_time = "2026-10-13 16:00:00+00:00"
+end_time = "2026-10-14 00:00:00+00:00"
 combined = combined.loc[start_time:end_time]
+
+# Remove sudden reference spikes above 520 ppm before fitting
+combined = combined[combined["ref_co2_ppm"] < 520]
+# combined = combined[combined["CO2 (ppm) raw"] < 470]
 
 # 1.  time series plot of both ref & raw sensor on the same time axis
 fig, ax = plt.subplots(figsize=(10, 5))
@@ -106,20 +112,39 @@ plt.savefig(output_dir / "raw_vs_ref_scatter.png", dpi=300)
 plt.close()
 
 
-# 3. linear fit (np.polyfit) & cov matrix calc
-p, cov = np.polyfit(
-    combined["ref_co2_ppm"], combined["CO2 (ppm) raw"], 1, cov=True
-)
-slope, intercept = p[0], p[1]
+# # 3. linear fit (np.polyfit) - predict Ref from Raw
+# p, cov = np.polyfit(
+#     combined["CO2 (ppm) raw"], combined["ref_co2_ppm"], 1, cov=True
+# )
+# slope, intercept = p[0], p[1]
 
-print(f"fit equation: raw CO2 = {slope:.10f} * ref + ({intercept:.10f})")
-print("covariance matrix for uncertainty propagation:")
-print(cov)
+# print(f"fit equation: Calibrated CO2 = {slope:.10f}*raw + ({intercept:.10f})")
+# print("covariance matrix for uncertainty propagation:")
+# print(cov)
 
-# 4. calculate calibrated CO2 values: Calibrated = (Raw - Intercept) / Slope
-combined["CO2 (ppm) calibrated"] = (
-    combined["CO2 (ppm) raw"] - intercept
-) / slope
+# # 4. calculate calibrated CO2 values directly
+# combined["CO2 (ppm) calibrated"] = (
+#     combined["CO2 (ppm) raw"] * slope
+# ) + intercept
+
+# 3. Multiple linear regression including time drift
+# Convert datetime index to a numeric value (hours since the start of the dataset)
+combined['time_hours'] = (combined.index - combined.index[0]).total_seconds() / 3600.0
+
+# Define inputs (Raw CO2 and Time) and output (Reference CO2)
+X = combined[["CO2 (ppm) raw", "time_hours"]]
+y = combined["ref_co2_ppm"]
+
+# Fit the model
+model = LinearRegression().fit(X, y)
+raw_coef = model.coef_[0]
+time_coef = model.coef_[1]
+intercept = model.intercept_
+
+print(f"Fit: Calibrated CO2 = ({raw_coef:.10f} * Raw) + ({time_coef:.5f} * Hours) + {intercept:.10f}")
+
+# 4. Calculate calibrated CO2 values using the model
+combined["CO2 (ppm) calibrated"] = model.predict(X)
 
 # 5. calibrated scatter plot vs 1:1 line
 fig, ax = plt.subplots(figsize=(8, 6))

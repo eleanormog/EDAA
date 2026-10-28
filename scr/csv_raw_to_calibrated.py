@@ -5,8 +5,8 @@
 # can be used in another script or to simply create new csv file
 
 # from the calibration.py file we have (raw CO2 = 0.8045841562 * ref + (49.7375292170))
-gain = 0.8045841562
-offset = 49.7375292170
+gain = 0.9880977888
+offset = 42.1695228756
 
 import pandas as pd
 
