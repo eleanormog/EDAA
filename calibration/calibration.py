@@ -40,6 +40,11 @@ combined = pd.concat(
 min_val = min(combined["ref_co2_ppm"].min(), combined["CO2 (ppm) raw"].min())
 max_val = max(combined["ref_co2_ppm"].max(), combined["CO2 (ppm) raw"].max())
 
+# limit data to be Oct 10th 12am -- Oct 12th 6am
+start_time = "2026-10-12 00:00:00+00:00"
+end_time = "2026-10-13 12:00:00+00:00"
+combined = combined.loc[start_time:end_time]
+
 # 1.  time series plot of both ref & raw sensor on the same time axis
 fig, ax = plt.subplots(figsize=(10, 5))
 ax.plot(
