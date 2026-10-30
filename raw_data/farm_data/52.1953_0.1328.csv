@@ -1,0 +1,4 @@
+﻿Location ID,Location Name,Location Group,Location Type,Sensor ID,Place Open,Local Date/Time,UTC Date/Time,# of aggregated records,PM2.5 (Î¼g/mÂ³) raw,PM2.5 (Î¼g/mÂ³) corrected,0.3Î¼m particle count,CO2 (ppm) raw,CO2 (ppm) corrected,Temperature (Â°C) raw,Temperature (Â°C) corrected,Heat Index (Â°C),Humidity (%) raw,Humidity (%) corrected,TVOC (ppb),TVOC index,NOX index,PM1 (Î¼g/mÂ³),PM10 (Î¼g/mÂ³)
+173035,d83bda1c29f8_A12,,Outdoor,airgradient:d83bda1c29f8,TRUE,27/10/2026 13:40,2026-10-27T13:40:00.000Z,5,0,0,60,403,403,20.2,18.7,18.8,51,72,124,129,1,0,0
+173035,d83bda1c29f8_A12,,Outdoor,airgradient:d83bda1c29f8,TRUE,27/10/2026 13:35,2026-10-27T13:35:00.000Z,5,0,0,45,401,401,20.2,18.7,18.9,52,72,162,165,1,0,0
+173035,d83bda1c29f8_A12,,Outdoor,airgradient:d83bda1c29f8,TRUE,27/10/2026 13:30,2026-10-27T13:30:00.000Z,5,0,0,46,409,409,20.3,18.9,18.9,52,73,418,305,1,0,0

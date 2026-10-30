@@ -5,10 +5,11 @@
 # can be used in another script or to simply create new csv file
 
 # from the calibration.py file we have (raw CO2 = 0.8045841562 * ref + (49.7375292170))
-gain = 0.9880977888
-offset = 42.1695228756
+gain = 0.792397
+offset = 120.731
 
 import pandas as pd
+from pathlib import Path
 
 def apply_calibration(
     df: pd.DataFrame,
@@ -32,8 +33,44 @@ def calibrate_sensor_file(
     gain: float = gain,
     offset: float = offset,
 ):
-    """Reads a sensor CSV file, computes calibrated CO2, and writes output to CSV."""
+    """Reads a sensor CSV file, computes calibrated CO2, and writes output to CSV. 
+    Deletes any rows NOT CO2 (ppm) or UTC date."""
     df = pd.read_csv(input_filepath)
     calibrated_df = apply_calibration(df, gain, offset)
-    calibrated_df.to_csv(output_filepath, index=False)
+
+    target_columns = ["UTC Date/Time", "CO2 (ppm) calibrated"]
+    output_df = calibrated_df[[col for col in target_columns if col in calibrated_df.columns]]
+    
+    output_df.to_csv(output_filepath, index=False)
     print(f"Saved calibrated file to: {output_filepath}")
+
+
+input_files = [
+    "raw_data/farm_data/52.1950_0.1319.csv",
+    "raw_data/farm_data/52.1952_0.1316.csv",
+    "raw_data/farm_data/52.1953_0.1328.csv",
+    "raw_data/farm_data/52.1954_0.1316.csv",
+    "raw_data/farm_data/52.1964_0.1314.csv",
+]
+
+def batch_calibrate_files(file_list: list[str]):
+    for file_path_str in file_list:
+        input_path = Path(file_path_str)
+        
+        if not input_path.exists():
+            print(f"Skipping: File '{input_path}' does not exist.")
+            continue
+            
+        # output name
+        output_path = input_path.with_name(f"{input_path.stem}_calibrated{input_path.suffix}")
+        
+        try:
+            calibrate_sensor_file(
+                input_filepath=str(input_path),
+                output_filepath=str(output_path)
+            )
+        except Exception as e:
+            print(f"Error processing {input_path.name}: {e}")
+
+if __name__ == "__main__":
+    batch_calibrate_files(input_files)
